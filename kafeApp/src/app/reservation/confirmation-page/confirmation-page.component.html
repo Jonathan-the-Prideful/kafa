@@ -1,0 +1,32 @@
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Reservation Confirmed</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <p *ngIf="reservation">
+        Thank you, <strong>{{ reservation.name || 'Guest' }}</strong>!
+      </p>
+
+      <p>
+        We will be excited to see you on
+        <strong>{{ getFormattedDate() }}</strong>
+        at
+        <strong>{{ getFormattedTime() }}</strong>.
+      </p>
+
+      <p *ngIf="reservation?.preferredArea">
+        Seating preference: <strong>{{ reservation.preferredArea }}</strong>
+      </p>
+
+      <p *ngIf="reservation?.guests">
+        Party size: <strong>{{ reservation.guests }}</strong>
+      </p>
+
+      <ion-toolbar>
+        <ion-button (click)="clearReservation()" expand="block" color="primary">Back to Home</ion-button>
+      </ion-toolbar>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

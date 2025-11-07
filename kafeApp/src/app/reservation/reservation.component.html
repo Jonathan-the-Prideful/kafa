@@ -1,0 +1,203 @@
+<div class="reservation-container">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Make a Reservation</ion-card-title>
+      <p class="step-indicator">Step {{ currentStep + 1 }} of {{ totalSteps }}</p>
+    </ion-card-header>
+
+    <ion-card-content>
+      <div *ngIf="currentStep === 0" class="step-content">
+        <h3>When would you like to dine?</h3>
+        <ion-datetime
+          [(ngModel)]="reservationData.datetime"
+          (ionChange)="onDatetimeChange()"
+          [isDateEnabled]="isDateAvailable"
+          [minuteValues]="minuteValues"
+          hourCycle="h23"
+          min="2025-07-24T18:00:00"
+          max="2025-07-31T22:00:00"
+          hourValues="18,19,20,21,22">
+          <span slot="title">Select Date & Time</span>
+        </ion-datetime>
+      </div>
+
+      <div *ngIf="currentStep === 1" class="step-content">
+        <h3>What's your name?</h3>
+        <ion-item>
+          <ion-input 
+            [(ngModel)]="reservationData.name"
+            label="Full Name" 
+            placeholder="Enter your name"
+            type="text">
+          </ion-input>
+        </ion-item>
+      </div>
+
+      <div *ngIf="currentStep === 2" class="step-content">
+        <h3>What's your email address?</h3>
+        <ion-item>
+          <ion-input 
+            [(ngModel)]="reservationData.email"
+            type="email" 
+            label="Email Address" 
+            placeholder="email@example.com"
+            [class.ion-invalid]="reservationData.email && !isValidEmail(reservationData.email)">
+          </ion-input>
+        </ion-item>
+        <p *ngIf="reservationData.email && !isValidEmail(reservationData.email)" class="error-text">
+          Please enter a valid email address
+        </p>
+      </div>
+
+      <div *ngIf="currentStep === 3" class="step-content">
+        <h3>What's your phone number?</h3>
+        <ion-item>
+          <ion-input 
+            [(ngModel)]="reservationData.phone"
+            type="tel"
+            label="Phone Number"
+            placeholder="+1 (xxx) xxx-xxxx"
+            [class.ion-invalid]="reservationData.phone && !isValidPhone(reservationData.phone)">
+          </ion-input>
+        </ion-item>
+        <p *ngIf="reservationData.phone && !isValidPhone(reservationData.phone)" class="error-text">
+          Please enter a valid phone number
+        </p>
+      </div>
+
+      <div *ngIf="currentStep === 4" class="step-content">
+        <h3>How many guests?</h3>
+        <ion-item>
+          <ion-select
+            [(ngModel)]="reservationData.guests"
+            name="guests"
+            interface="popover"
+            (ionChange)="onGuestsChange()"
+            placeholder="Select number of guests">
+            <ion-select-option *ngFor="let n of [1,2,3,4,5,6,7,8,9,10,11,12]" [value]="n">{{ n }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </div>
+
+      <div *ngIf="currentStep === 5" class="step-content">
+        <h3>How many children?</h3>
+        <ion-item>
+          <ion-select
+            [(ngModel)]="reservationData.children"
+            name="children"
+            interface="popover"
+            (ionChange)="onChildrenChange()"
+            placeholder="Select number of children">
+            <ion-select-option *ngFor="let n of getChildrenOptions()" [value]="n">{{ n }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </div>
+
+      <div *ngIf="currentStep === 6" class="step-content">
+        <h3>Any special requirements?</h3>
+        <ion-item>
+          <ion-toggle 
+          [(ngModel)]="reservationData.smoking"
+          (ionChange)="onSmokingChange()">
+          Smoking while dining?
+          </ion-toggle>
+        </ion-item>
+        <ion-item>
+          <ion-toggle [(ngModel)]="reservationData.birthday">Celebrating a birthday?</ion-toggle>
+        </ion-item>
+        <ion-item *ngIf="reservationData.birthday">
+          <ion-input 
+            [(ngModel)]="reservationData.birthdayGuestName"
+            label="Birthday Guest Name" 
+            placeholder="Enter guest's name (optional)"
+            type="text">
+          </ion-input>
+        </ion-item>
+      </div>
+
+      <div *ngIf="currentStep === 7" class="step-content">
+        <h3>Where would you prefer to sit?</h3>
+        <ion-item>
+          <ion-select 
+            [(ngModel)]="reservationData.preferredArea"
+            label="Preferred Area" 
+            placeholder="Select Dining Area">
+            <ion-select-option 
+              *ngFor="let area of getAvailableSeatingAreas()" 
+              [value]="area.value"
+              [disabled]="isAreaDisabled(area)"
+              [class.disabled-option]="isAreaDisabled(area)">
+              {{ area.label }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+        <p *ngIf="reservationData.smoking" class="info-text">
+          Smoking is only permitted in the RiverSide Smoking area.
+        </p>
+        <p *ngIf="reservationData.children > 0 && !reservationData.smoking" class="info-text">
+          Parties with children are not permitted at the Bar.
+        </p>
+      </div>
+
+      <div class="navigation-buttons">
+        <ion-button 
+          *ngIf="currentStep > 0" 
+          (click)="previousStep()" 
+          fill="outline"
+          color="medium">
+          Back
+        </ion-button>
+
+        <ion-button 
+          *ngIf="currentStep < totalSteps - 1" 
+          (click)="nextStep()" 
+          [disabled]="!canGoNext()"
+          color="primary">
+          Next
+        </ion-button>
+
+        <ion-button 
+          *ngIf="currentStep === totalSteps - 1" 
+          (click)="onSubmit()" 
+          [disabled]="!isFormValid()"
+          color="success">
+          Confirm Reservation
+        </ion-button>
+
+        <ion-button 
+          (click)="onCancel()" 
+          fill="clear"
+          color="danger">
+          Cancel
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Current Availability</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p>
+        Main Hall chairs:
+        <ion-spinner *ngIf="seatsLoading['MainHall']" name="dots"></ion-spinner>
+        <span *ngIf="!seatsLoading['MainHall']">{{ getSeatsLeft('MainHall') ?? '-' }}/60</span>
+      </p>
+      <p>
+        Bar chairs:
+        <ion-spinner *ngIf="seatsLoading['Bar']" name="dots"></ion-spinner>
+        <span *ngIf="!seatsLoading['Bar']">{{ getSeatsLeft('Bar') ?? '-' }}/10</span>
+      </p>
+      <p>
+        RiverSide chairs:
+        <ion-spinner *ngIf="seatsLoading['RiverSide']" name="dots"></ion-spinner>
+        <span *ngIf="!seatsLoading['RiverSide']">{{ getSeatsLeft('RiverSide') ?? '-' }}/20</span>
+      </p>
+      <p>
+        RiverSide Smoking chairs:
+        <ion-spinner *ngIf="seatsLoading['RiverSideSmoking']" name="dots"></ion-spinner>
+        <span *ngIf="!seatsLoading['RiverSideSmoking']">{{ getSeatsLeft('RiverSideSmoking') ?? '-' }}/10</span>
+      </p>
+    </ion-card-content>
+  </ion-card>
+</div>

@@ -1,0 +1,86 @@
+<ion-content class="ion-padding">
+  <ion-card *ngIf="reservationData">
+    <ion-card-header>
+      <ion-card-title>Reservation Summary</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-list lines="none">
+        <ion-item>
+          <ion-label>
+            <strong>Date & Time:</strong>
+            <p>{{ reservationData.datetime}} at {{ reservationData.datetime}}</p>
+          </ion-label>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>
+            <strong>Name:</strong>
+            <p>{{ reservationData.name || 'Not provided' }}</p>
+          </ion-label>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>
+            <strong>Email:</strong>
+            <p>{{ reservationData.email || 'Not provided' }}</p>
+          </ion-label>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>
+            <strong>Phone:</strong>
+            <p>{{ reservationData.phone || 'Not provided' }}</p>
+          </ion-label>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>
+            <strong>Guests:</strong>
+            <p>{{ reservationData.guests }}</p>
+          </ion-label>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>
+            <strong>Preferred Area:</strong>
+            <p>{{ reservationData.preferredArea || 'No preference' }}</p>
+          </ion-label>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>
+            <strong>Children:</strong>
+            <p>{{ reservationData.children }}</p>
+          </ion-label>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>
+            <strong>Smoking:</strong>
+            <p>{{ reservationData.smoking ? 'Yes' : 'No' }}</p>
+          </ion-label>
+        </ion-item>
+
+        <ion-item *ngIf="reservationData.birthday">
+          <ion-label>
+            <strong>Birthday Guest:</strong>
+            <p>{{ reservationData.birthdayGuestName || 'Not specified' }}</p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+    <ion-toolbar>
+    <ion-button expand="block" color="success" (click)="confirmReservation()">
+      Confirm Reservation
+    </ion-button>
+    <ion-button expand="block" color="secondary" (click)="editReservation()">
+      Edit Reservation
+    </ion-button>
+    <ion-button expand="block" color="danger" (click)="cancelReservation()">
+      Cancel Reservation
+    </ion-button>
+  </ion-toolbar>
+</ion-content>
+      
