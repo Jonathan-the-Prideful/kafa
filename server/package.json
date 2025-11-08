@@ -1,0 +1,16 @@
+{
+  "name": "kafe-backend",
+  "version": "1.0.0",
+  "description": "Backend server for kafe application",
+  "main": "expressServer.js",
+  "type": "module",
+  "scripts": {
+    "start": "node expressServer.js",
+    "dev": "nodemon expressServer.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "mysql2": "^3.15.3"
+  }
+}
