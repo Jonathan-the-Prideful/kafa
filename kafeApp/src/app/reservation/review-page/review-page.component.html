@@ -3,66 +3,68 @@
     <ion-card-header>
       <ion-card-title>Reservation Summary</ion-card-title>
     </ion-card-header>
-
     <ion-card-content>
+      <ion-card-subtitle>
+        Please review your reservation details below. Tap on any item to edit.
+      </ion-card-subtitle>
       <ion-list lines="none">
-        <ion-item>
+        <ion-item button (click)="editDetail(0)">
           <ion-label>
             <strong>Date & Time:</strong>
             <p>{{ reservationData.datetime}} at {{ reservationData.datetime}}</p>
           </ion-label>
         </ion-item>
 
-        <ion-item>
+        <ion-item button (click)="editDetail(1)">
           <ion-label>
             <strong>Name:</strong>
             <p>{{ reservationData.name || 'Not provided' }}</p>
           </ion-label>
         </ion-item>
 
-        <ion-item>
+        <ion-item button (click)="editDetail(2)">
           <ion-label>
             <strong>Email:</strong>
             <p>{{ reservationData.email || 'Not provided' }}</p>
           </ion-label>
         </ion-item>
 
-        <ion-item>
+        <ion-item button (click)="editDetail(3)">
           <ion-label>
             <strong>Phone:</strong>
             <p>{{ reservationData.phone || 'Not provided' }}</p>
           </ion-label>
         </ion-item>
 
-        <ion-item>
+        <ion-item button (click)="editDetail(4)">
           <ion-label>
             <strong>Guests:</strong>
             <p>{{ reservationData.guests }}</p>
           </ion-label>
         </ion-item>
 
-        <ion-item>
+        <ion-item button (click)="editDetail(7)">
           <ion-label>
             <strong>Preferred Area:</strong>
             <p>{{ reservationData.preferredArea || 'No preference' }}</p>
           </ion-label>
         </ion-item>
 
-        <ion-item>
+        <ion-item button (click)="editDetail(5)">
           <ion-label>
             <strong>Children:</strong>
             <p>{{ reservationData.children }}</p>
           </ion-label>
         </ion-item>
 
-        <ion-item>
+        <ion-item button (click)="editDetail(6)">
           <ion-label>
             <strong>Smoking:</strong>
             <p>{{ reservationData.smoking ? 'Yes' : 'No' }}</p>
           </ion-label>
         </ion-item>
 
-        <ion-item *ngIf="reservationData.birthday">
+        <ion-item *ngIf="reservationData.birthday" button (click)="editDetail(6)">
           <ion-label>
             <strong>Birthday Guest:</strong>
             <p>{{ reservationData.birthdayGuestName || 'Not specified' }}</p>

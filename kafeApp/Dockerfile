@@ -3,45 +3,26 @@
 ARG NODE_VERSION=22.20.0
 
 ################################################################################
-# Stage 1: Build the Ionic/Angular application
-FROM node:${NODE_VERSION}-alpine AS builder
+# Use Node.js Alpine for production build
+FROM node:${NODE_VERSION}-alpine
 
 # Set working directory
 WORKDIR /usr/src/app
 
-# Install build tools required for native packages
-RUN apk add --no-cache python3 make g++
-
-# Copy package files and install dependencies
+# Copy package files
 COPY package.json package-lock.json* ./
+
+# Install ALL dependencies (including devDependencies for Angular CLI)
 RUN npm ci
 
-# Copy source code
+# Install Ionic CLI and Angular CLI globally
+RUN npm install -g @ionic/cli @angular/cli
+
+# Copy the rest of the application source
 COPY . .
-
-# Build the application for production
-RUN npm run build -- --configuration=production
-
-################################################################################
-# Stage 2: Serve with nginx
-FROM nginx:stable-alpine AS runner
-
-# Remove default nginx static assets
-RUN rm -rf /usr/share/nginx/html/*
-
-# Copy built application from builder stage
-# Ionic/Angular typically outputs to ./www - adjust if your build outputs to ./dist
-COPY --from=builder /usr/src/app/www/ /usr/share/nginx/html/
-
-# Optional: Copy custom nginx configuration if you have one
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port 80
 EXPOSE 80
 
-# Add healthcheck
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
-    CMD wget -q -O- http://localhost/ || exit 1
-
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Run ionic serve on port 80
+CMD ["ionic", "serve", "--external", "--host", "0.0.0.0", "--port", "80", "--disable-host-check"]

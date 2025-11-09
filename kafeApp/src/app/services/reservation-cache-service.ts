@@ -14,14 +14,21 @@ export interface ReservationData {
   birthdayGuestName: string;
 }
 
+export interface AvailabilityCache {
+  date: string; // YYYY-MM-DD
+  data: any[];
+  timestamp: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class ReservationCacheService {
   private readonly TTL_MS = 30 * 60 * 1000; // 30 minutes
+  private readonly AVAILABILITY_TTL_MS = 2 * 60 * 1000; // 2 minutes for availability
 
   private defaultReservation: ReservationData = {
-    datetime: '2025-07-24T18:00:00',
+    datetime: '2025-07-24T18:00:00', // In normal use this would be current date/time
     name: '',
     email: '',
     phone: '',
@@ -35,6 +42,9 @@ export class ReservationCacheService {
 
   private reservationSubject = new BehaviorSubject<ReservationData>(this.loadInitial());
   reservation$ = this.reservationSubject.asObservable();
+
+  private availabilitySubject = new BehaviorSubject<AvailabilityCache | null>(this.loadAvailabilityCache());
+  availability$ = this.availabilitySubject.asObservable();
 
   constructor() { }
 
@@ -79,5 +89,55 @@ export class ReservationCacheService {
 
   clearReservation(): void {
     localStorage.removeItem('reservationData');
+    this.reservationSubject.next(this.defaultReservation);
+  }
+
+  // Availability caching methods
+  private loadAvailabilityCache(): AvailabilityCache | null {
+    const cached = localStorage.getItem('availabilityData');
+    if (!cached) return null;
+
+    try {
+      const cache: AvailabilityCache = JSON.parse(cached);
+      if (this.isAvailabilityExpired(cache.timestamp)) {
+        localStorage.removeItem('availabilityData');
+        return null;
+      }
+      return cache;
+    } catch {
+      return null;
+    }
+  }
+
+  private isAvailabilityExpired(timestamp: number): boolean {
+    const now = Date.now();
+    return now - timestamp > this.AVAILABILITY_TTL_MS;
+  }
+
+  setAvailability(date: string, data: any[]): void {
+    const cache: AvailabilityCache = {
+      date,
+      data,
+      timestamp: Date.now()
+    };
+    this.availabilitySubject.next(cache);
+    localStorage.setItem('availabilityData', JSON.stringify(cache));
+  }
+
+  getAvailability(date: string): any[] | null {
+    const cache = this.availabilitySubject.getValue();
+    if (!cache || cache.date !== date || this.isAvailabilityExpired(cache.timestamp)) {
+      return null;
+    }
+    return cache.data;
+  }
+
+  private clearAvailability(): void {
+    localStorage.removeItem('availabilityData');
+    this.availabilitySubject.next(null);
+  }
+
+  invalidateAvailability(): void {
+    this.clearAvailability();
   }
 }

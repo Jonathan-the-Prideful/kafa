@@ -39,6 +39,7 @@ export class ConfirmationPageComponent implements OnInit {
 
   clearReservation(): void {
     this.reservationCache.clearReservation();
+    this.reservationCache.invalidateAvailability();
     this.done.emit();
   }
 

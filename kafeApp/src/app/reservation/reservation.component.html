@@ -9,6 +9,7 @@
       <div *ngIf="currentStep === 0" class="step-content">
         <h3>When would you like to dine?</h3>
         <ion-datetime
+          #datetimePicker
           [(ngModel)]="reservationData.datetime"
           (ionChange)="onDatetimeChange()"
           [isDateEnabled]="isDateAvailable"
@@ -135,7 +136,7 @@
           Smoking is only permitted in the RiverSide Smoking area.
         </p>
         <p *ngIf="reservationData.children > 0 && !reservationData.smoking" class="info-text">
-          Parties with children are not permitted at the Bar.
+          Parties with children are not permitted at the Bar & Smoking areas.
         </p>
       </div>
 
@@ -173,31 +174,33 @@
       </div>
     </ion-card-content>
   </ion-card>
-  <ion-card>
+  <ion-card *ngIf="seatsLeft$ | async as seatsLeft">
     <ion-card-header>
       <ion-card-title>Current Availability</ion-card-title>
     </ion-card-header>
     <ion-card-content>
-      <p>
-        Main Hall chairs:
-        <ion-spinner *ngIf="seatsLoading['MainHall']" name="dots"></ion-spinner>
-        <span *ngIf="!seatsLoading['MainHall']">{{ getSeatsLeft('MainHall') ?? '-' }}/60</span>
-      </p>
-      <p>
-        Bar chairs:
-        <ion-spinner *ngIf="seatsLoading['Bar']" name="dots"></ion-spinner>
-        <span *ngIf="!seatsLoading['Bar']">{{ getSeatsLeft('Bar') ?? '-' }}/10</span>
-      </p>
-      <p>
-        RiverSide chairs:
-        <ion-spinner *ngIf="seatsLoading['RiverSide']" name="dots"></ion-spinner>
-        <span *ngIf="!seatsLoading['RiverSide']">{{ getSeatsLeft('RiverSide') ?? '-' }}/20</span>
-      </p>
-      <p>
-        RiverSide Smoking chairs:
-        <ion-spinner *ngIf="seatsLoading['RiverSideSmoking']" name="dots"></ion-spinner>
-        <span *ngIf="!seatsLoading['RiverSideSmoking']">{{ getSeatsLeft('RiverSideSmoking') ?? '-' }}/10</span>
-      </p>
+      <ng-container *ngIf="areaTotals$ | async as areaTotals">
+        <p>
+          Main Hall chairs:
+          <ion-spinner *ngIf="seatsLoading['MainHall']" name="dots"></ion-spinner>
+          <span *ngIf="!seatsLoading['MainHall']">{{ seatsLeft['MainHall'] ?? '-' }}/{{ areaTotals['MainHall'] }}</span>
+        </p>
+        <p>
+          Bar chairs:
+          <ion-spinner *ngIf="seatsLoading['Bar']" name="dots"></ion-spinner>
+          <span *ngIf="!seatsLoading['Bar']">{{ seatsLeft['Bar'] ?? '-' }}/{{ areaTotals['Bar'] }}</span>
+        </p>
+        <p>
+          RiverSide chairs:
+          <ion-spinner *ngIf="seatsLoading['RiverSide']" name="dots"></ion-spinner>
+          <span *ngIf="!seatsLoading['RiverSide']">{{ seatsLeft['RiverSide'] ?? '-' }}/{{ areaTotals['RiverSide'] }}</span>
+        </p>
+        <p>
+          RiverSide Smoking chairs:
+          <ion-spinner *ngIf="seatsLoading['RiverSideSmoking']" name="dots"></ion-spinner>
+          <span *ngIf="!seatsLoading['RiverSideSmoking']">{{ seatsLeft['RiverSideSmoking'] ?? '-' }}/{{ areaTotals['RiverSideSmoking'] }}</span>
+        </p>
+      </ng-container>
     </ion-card-content>
   </ion-card>
 </div>

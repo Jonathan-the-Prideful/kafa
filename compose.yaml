@@ -9,6 +9,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 5000
+      SOCKET_PORT: 5001
       DB_HOST: db
       DB_PORT: 3306
       DB_USER: root
@@ -17,21 +18,21 @@ services:
     depends_on:
       db:
         condition: service_healthy
+        restart: true
     ports:
       - "5000:5000"
+      - "5001:5001"
 
   website:
     build:
       context: ./kafeApp
-    environment:
-      NODE_ENV: production
     depends_on:
       - server
     ports:
-      - "8100:80"
+      - "80:80"
 
   db:
-    image: mysql:latest
+    build: ./database
     ports:
       - "3306:3306"
     environment:

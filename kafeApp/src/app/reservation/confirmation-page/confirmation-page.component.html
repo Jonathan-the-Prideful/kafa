@@ -10,7 +10,7 @@
       </p>
 
       <p>
-        We will be excited to see you on
+        We are excited to see you on
         <strong>{{ getFormattedDate() }}</strong>
         at
         <strong>{{ getFormattedTime() }}</strong>.
@@ -22,6 +22,12 @@
 
       <p *ngIf="reservation?.guests">
         Party size: <strong>{{ reservation.guests }}</strong>
+      </p>
+
+      <p>
+        A confirmation email has been sent to
+        <strong>{{ reservation.email || 'the provided email address' }}</strong>.
+        If you need to make any changes, or to cancel your reservation, please contact us directly.
       </p>
 
       <ion-toolbar>
