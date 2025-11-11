@@ -16,9 +16,21 @@ import { environment } from '../../environments/environment';
   imports: [IonHeader, IonToolbar, IonTitle, IonContent],
 })
 export class HomePage {
-  constructor(private reservationCacheService: ReservationCacheService, private alertCtrl: AlertController) { }
+  constructor(private reservationCacheService: ReservationCacheService, private alertCtrl: AlertController) {
+  }
   @ViewChild('dynamicContentContainer', { read: ViewContainerRef }) dynamicContentContainer!: ViewContainerRef;
-  public socket = io(environment.socketUrl);
+  public socket = io(environment.socketUrl, {
+    transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000
+  });
+
+  ngOnInit() {
+    this.socket.on('connect_error', (error: any) => {
+      console.error('[HomePage] Socket connection error:', error);
+    });
+  }
 
   ngAfterViewInit() {
     this.loadSplash();
@@ -78,8 +90,6 @@ export class HomePage {
     ref.instance.reservationConfirmed?.subscribe(async () => {
       try {
         const reservation = await firstValueFrom(this.reservationCacheService.reservation$);
-        console.log('emitting reservation via socket', reservation);
-
         // Use acknowledgement callback to get server response.
         this.socket.emit('reservation:created', reservation, async (ack: any) => {
           try {

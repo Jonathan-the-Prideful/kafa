@@ -58,14 +58,18 @@ function generateTimeSlots() {
  * @returns {boolean} - True if reservation overlaps this slot
  */
 function reservationOverlapsSlot(reservationStart, slotTime, dateStr) {
-  const reservationEnd = new Date(reservationStart.getTime() + 2 * 60 * 60 * 1000); // +2 hours
+  // Reservation effective window: start - 1.5h  -> start + 2h
+  const preBlockMs = 1.5 * 60 * 60 * 1000; // 1.5 hours
+  const postBlockMs = 2 * 60 * 60 * 1000;  // 2 hours
+  const effectiveStart = new Date(reservationStart.getTime() - preBlockMs);
+  const effectiveEnd = new Date(reservationStart.getTime() + postBlockMs);
 
   const [hour, minute] = slotTime.split(':').map(Number);
   const slotStart = new Date(`${dateStr}T${slotTime}:00`);
   const slotEnd = new Date(slotStart.getTime() + 30 * 60 * 1000); // +30 minutes
 
-  // Check if reservation overlaps this slot
-  return reservationStart < slotEnd && reservationEnd > slotStart;
+  // Check if effective reservation window overlaps this slot
+  return effectiveStart < slotEnd && effectiveEnd > slotStart;
 }
 
 /**
@@ -163,5 +167,5 @@ export default router;
 // Strategy to get availability:
 // 1. Get all areas
 // 2. For each area, get reservations for the given date
-// Note: Reservations are 2 hours long.
+// Note: Reservations are 2 hours long. We need to also consider the first 1.5 hours before each reservation as blocked time.
 // 3. Return areas with map of (capacity and reservation count broken down into 30 minute intervals) between 18:00 and 22:00 based on reservations found

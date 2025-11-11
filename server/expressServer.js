@@ -16,7 +16,10 @@ const io = initSocket({ port: socketPort, origins: socketOrigins });
 
 // Allow CORS from the frontend
 app.use((req, res, next) => {
-    const allowedOrigins = ['http://localhost:80', 'http://localhost'];
+    const allowedOrigins = [
+        'http://localhost',
+        'http://localhost:80'
+    ];
     const origin = req.headers.origin;
     if (allowedOrigins.includes(origin)) {
         res.header('Access-Control-Allow-Origin', origin);

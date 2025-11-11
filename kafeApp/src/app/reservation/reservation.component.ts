@@ -108,18 +108,23 @@ export class ReservationComponent implements OnInit, OnDestroy {
 
     // Set up socket listener for real-time availability updates
     if (this.socket) {
+      console.debug('[Reservation] Setting up socket listener, socket ID:', this.socket.id);
+
       this.socket.on('reservations:refresh', async (payload: any) => {
+        console.log('[Reservation] Received reservations:refresh broadcast:', payload);
+
         // Invalidate cache and force refresh
         this.reservationCacheService.invalidateAvailability();
 
         // Service will update observables automatically
         try {
+          console.debug('[Reservation] Fetching fresh availability data');
           await this.availabilityService.fetchAvailability(
             this.reservationData.datetime,
             true
           );
         } catch (err) {
-          console.error('Error during fetchAvailability:', err);
+          console.error('[Reservation] Error during fetchAvailability:', err);
         }
 
         // Check if current reservation is still valid after refresh
@@ -131,12 +136,18 @@ export class ReservationComponent implements OnInit, OnDestroy {
               seatsLeft
             );
 
+            console.debug('[Reservation] Availability check after refresh - isValid:', isValid);
+
             if (!isValid) {
+              console.debug('[Reservation] Showing unavailable alert due to refresh');
               this.showUnavailableAlert();
             }
           }).unsubscribe();
         }).unsubscribe();
       });
+
+    } else {
+      console.warn('[Reservation] No socket available - real-time updates disabled');
     }
 
     // Fetch availability on component initialization
@@ -150,6 +161,7 @@ export class ReservationComponent implements OnInit, OnDestroy {
 
     // Clean up socket listener
     if (this.socket) {
+      console.debug('[Reservation] Destroying socket listener');
       this.socket.off('reservations:refresh');
     }
   }
@@ -183,6 +195,28 @@ export class ReservationComponent implements OnInit, OnDestroy {
     const hour = pad(d.getHours());
     const minute = pad(d.getMinutes());
     return `${year}-${month}-${day}T${hour}:${minute}:00`;
+  }
+
+  /**
+   * Parse an ISO datetime string but treat the components as literal (do not apply timezone conversion).
+   * This ensures we display the same date and hour/minute that are present in the ISO string,
+   * even if the string contains a 'Z' or timezone offset.
+   * If the ISO string doesn't match the expected pattern, fall back to Date parsing.
+   */
+  private parseIsoAsLocal(iso: string): Date {
+    if (!iso) return new Date(iso);
+    const m = iso.match(/^\s*(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,3})?)?/);
+    if (m) {
+      const year = Number(m[1]);
+      const month = Number(m[2]) - 1;
+      const day = Number(m[3]);
+      const hour = Number(m[4]);
+      const minute = Number(m[5]);
+      const second = m[6] ? Number(m[6]) : 0;
+      // Construct a Date using local timezone but with the same component values.
+      return new Date(year, month, day, hour, minute, second);
+    }
+    return new Date(iso);
   }
 
   onDatetimeChange(): void {
@@ -361,10 +395,9 @@ export class ReservationComponent implements OnInit, OnDestroy {
   private async showDuplicateBookingAlert(duplicateInfo: any): Promise<void> {
     const conflicting = duplicateInfo.conflictingReservation;
     const matchedBy = duplicateInfo.matchedBy;
-
-    const conflictDate = new Date(conflicting.datetime);
+    const conflictDate = this.parseIsoAsLocal(conflicting.datetime);
     const formattedDate = conflictDate.toLocaleDateString();
-    const formattedTime = conflictDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    const formattedTime = conflictDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
 
     const message = `You already have a reservation on ${formattedDate} at ${formattedTime} for ${conflicting.guests} guest(s).\n\n` +
       `This was matched by your ${matchedBy}.\n\n` +

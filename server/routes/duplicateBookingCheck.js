@@ -171,16 +171,18 @@ router.get('/check-duplicate', async (req, res) => {
                 // Determine which field matched (use sanitized values for comparison)
                 const matchedBy = (sanitizedEmail && reservation.email === sanitizedEmail) ? 'email' : 'phone';
 
-                return res.json({
+                const payload = {
                     duplicate: true,
-                    matchedBy: matchedBy,
+                    matchedBy,
                     conflictingReservation: {
                         reservation_id: reservation.reservation_id,
                         datetime: reservation.datetime,
                         guests: reservation.guests,
                         area_id: reservation.area_id
                     }
-                });
+                };
+
+                return res.json(payload);
             }
         }
 

@@ -62,6 +62,43 @@ export class ReviewPageComponent implements OnInit, OnDestroy {
   private currentSeatsLeft: Record<string, number | null> = {};
   private currentAreaTotals: Record<string, number> = {};
 
+  /**
+   * Parse an ISO datetime string but treat the components as literal (do not apply timezone conversion).
+   * This ensures we display the same date and hour/minute that are present in the ISO string.
+   */
+  private parseIsoAsLocal(iso: string): Date {
+    if (!iso) return new Date(iso);
+    const m = iso.match(/^\s*(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,3})?)?/);
+    if (m) {
+      const year = Number(m[1]);
+      const month = Number(m[2]) - 1;
+      const day = Number(m[3]);
+      const hour = Number(m[4]);
+      const minute = Number(m[5]);
+      const second = m[6] ? Number(m[6]) : 0;
+      return new Date(year, month, day, hour, minute, second);
+    }
+    return new Date(iso);
+  }
+
+  /**
+   * Get formatted date string from reservation datetime
+   */
+  getFormattedDate(): string {
+    if (!this.reservationData.datetime) return '';
+    const date = this.parseIsoAsLocal(this.reservationData.datetime);
+    return date.toLocaleDateString();
+  }
+
+  /**
+   * Get formatted time string from reservation datetime
+   */
+  getFormattedTime(): string {
+    if (!this.reservationData.datetime) return '';
+    const date = this.parseIsoAsLocal(this.reservationData.datetime);
+    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+  }
+
   ngOnInit() {
     // Initialize observables from service
     this.availabilityData$ = this.availabilityService.availabilityData$;
@@ -80,22 +117,26 @@ export class ReviewPageComponent implements OnInit, OnDestroy {
     // Set up socket listener for real-time availability updates
     if (this.socket) {
       this.socket.on('reservations:refresh', async (payload: any) => {
-        console.log('Received reservations:refresh event', payload);
         // Invalidate cache and force refresh
         this.reservationCacheService.invalidateAvailability();
 
-        // Service will update observables automatically
+        // Fetch availability and wait for it to complete
         await this.availabilityService.fetchAvailability(
           this.reservationData.datetime,
           true
         );
 
-        // Check if current reservation is still valid after refresh using cached values
-        if (!this.availabilityService.checkReservationAgainstAvailability(
+        // Small delay to ensure observables have propagated
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Check if current reservation is still valid after refresh
+        const isValid = this.availabilityService.checkReservationAgainstAvailability(
           this.reservationData,
           this.currentAvailabilityData,
           this.currentSeatsLeft
-        )) {
+        );
+
+        if (!isValid) {
           await this.showUnavailableAlert();
         }
       });

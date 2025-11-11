@@ -3,7 +3,13 @@ import { db } from './database.js';
 
 export function initSocket() {
     const port = Number(process.env.SOCKET_PORT ?? 5001);
-    const origins = ['http://localhost:80', 'http://localhost'];
+    const origins = [
+        'http://localhost',
+        'http://localhost:80'
+    ];
+
+    console.log(`[Socket] Initializing Socket.IO server on port ${port}`);
+    console.log(`[Socket] CORS origins:`, origins);
 
     const io = new Server(port, {
         cors: {
@@ -12,11 +18,18 @@ export function initSocket() {
         }
     });
 
+    console.log(`[Socket] Socket.IO server started successfully on port ${port}`);
+
     io.on('connection', (socket) => {
-        console.log(`a user with id ${socket.id} connected`);
+        console.log(`[Socket] User connected - ID: ${socket.id}, Total clients: ${io.engine.clientsCount}`);
 
         // handle reservation events emitted from clients
         socket.on('reservation:created', async (reservation, callback) => {
+            console.log(`[Socket] Received reservation:created from ${socket.id}:`, {
+                preferredArea: reservation?.preferredArea,
+                datetime: reservation?.datetime,
+                guests: reservation?.guests
+            });
             try {
                 // Create reservation FIRST and wait for it to complete
                 await createReservation(reservation);
@@ -45,7 +58,7 @@ export function initSocket() {
         });
 
         socket.on('disconnect', () => {
-            console.log(`user ${socket.id} disconnected`);
+            console.log(`[Socket] User disconnected - ID: ${socket.id}, Remaining clients: ${io.engine.clientsCount - 1}`);
         });
     });
 
@@ -57,9 +70,10 @@ export function initSocket() {
             const datetime = reservation && typeof reservation === 'object' ? reservation.datetime : null;
             const payload = { area: area ?? null, datetime: datetime ?? null };
 
+            console.log('[Socket] Broadcasting reservations:refresh:', payload);
             socket.broadcast.emit('reservations:refresh', payload);
         } catch (emitErr) {
-            console.error('Error broadcasting reservations:refresh', emitErr);
+            console.error('[Socket] Error broadcasting reservations:refresh:', emitErr);
         }
     }
 

@@ -11,7 +11,7 @@
         <ion-item button (click)="editDetail(0)">
           <ion-label>
             <strong>Date & Time:</strong>
-            <p>{{ reservationData.datetime}} at {{ reservationData.datetime}}</p>
+            <p>{{ getFormattedDate() }} at {{ getFormattedTime() }}</p>
           </ion-label>
         </ion-item>
 
