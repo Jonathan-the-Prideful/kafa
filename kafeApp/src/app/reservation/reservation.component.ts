@@ -227,11 +227,6 @@ export class ReservationComponent implements OnInit, OnDestroy {
     this.reservationCacheService.setReservation({ datetime: this.reservationData.datetime });
   }
 
-  isDateAvailable = (date: string): boolean => {
-    const disabledDates = ['2025-07-26'];
-    return !disabledDates.includes(date);
-  }
-
   isAreaDisabled(area: any): boolean {
     return this.availabilityService.isAreaDisabled(area, this.reservationData);
   }
